@@ -52,16 +52,16 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
-				}
+				// HaloCard specific colors
+				halo: 'hsl(var(--halo))',
+				'halo-glow': 'hsl(var(--halo-glow))',
+				'sky-start': 'hsl(var(--sky-start))',
+				'sky-end': 'hsl(var(--sky-end))',
+				cloud: 'hsl(var(--cloud))',
+				// Tier colors
+				angel: 'hsl(var(--angel))',
+				archangel: 'hsl(var(--archangel))',
+				cherubim: 'hsl(var(--cherubim))'
 			},
 			borderRadius: {
 				lg: 'var(--radius)',
@@ -88,7 +88,13 @@ export default {
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'halo-pulse': 'halo-pulse 3s ease-in-out infinite',
+				'cloud-drift-1': 'cloud-drift-1 30s linear infinite',
+				'cloud-drift-2': 'cloud-drift-2 25s linear infinite',
+				'cloud-drift-3': 'cloud-drift-3 35s linear infinite',
+				'card-scroll': 'card-scroll 20s linear infinite',
+				'gentle-float': 'gentle-float 6s ease-in-out infinite'
 			}
 		}
 	},
