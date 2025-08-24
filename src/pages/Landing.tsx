@@ -44,39 +44,104 @@ export const Landing = () => {
       </div>
 
       {/* Hero Section */}
-      <section className="pt-32 pb-20 px-6">
-        <div className="container mx-auto text-center">
+      <section className="pt-32 pb-20 px-6 relative overflow-hidden">
+        {/* Additional background elements */}
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 via-transparent to-archangel/5" />
+        <div className="absolute top-1/4 left-1/4 w-96 h-96 rounded-full bg-primary/10 blur-3xl" />
+        <div className="absolute bottom-1/4 right-1/4 w-80 h-80 rounded-full bg-archangel/10 blur-3xl" />
+        
+        <div className="container mx-auto text-center relative z-10">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="max-w-4xl mx-auto"
+            className="max-w-5xl mx-auto"
           >
-            <h1 className="text-6xl md:text-8xl font-light mb-8 halo-glow">
-              <span className="text-gradient">Great ideas</span>
-              <br />
-              <span className="text-foreground">live here</span>
-            </h1>
+            {/* Main headline with enhanced styling */}
+            <div className="relative mb-8">
+              <motion.h1 
+                className="text-7xl md:text-9xl font-thin mb-4 leading-tight"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 1, delay: 0.2 }}
+              >
+                <span className="block text-gradient halo-glow">Great ideas</span>
+                <span className="block text-foreground/90 font-light">live here</span>
+              </motion.h1>
+              
+              {/* Floating decorative elements */}
+              <motion.div 
+                className="absolute -top-8 -right-8 w-4 h-4 rounded-full bg-primary/60"
+                animate={{ y: [-10, 10, -10] }}
+                transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
+              />
+              <motion.div 
+                className="absolute top-1/2 -left-12 w-2 h-2 rounded-full bg-archangel/80"
+                animate={{ y: [10, -10, 10] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 1 }}
+              />
+              <motion.div 
+                className="absolute -bottom-4 left-1/3 w-3 h-3 rounded-full bg-cherubim/70"
+                animate={{ y: [-5, 15, -5] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
+              />
+            </div>
             
-            <p className="text-xl text-muted-foreground mb-12 max-w-2xl mx-auto">
-              Join the exclusive community of HaloCard holders. Create, share, and showcase your divine presence on the blockchain.
-            </p>
+            {/* Enhanced subtitle */}
+            <motion.p 
+              className="text-xl md:text-2xl text-muted-foreground mb-12 max-w-3xl mx-auto leading-relaxed"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.4 }}
+            >
+              Enter the exclusive realm of <span className="text-primary font-semibold">divine creators</span>. 
+              Mint your sacred HaloCard and join the enlightened community on Solana.
+            </motion.p>
 
-            <div className="flex flex-col md:flex-row gap-6 justify-center items-center mb-16">
-              <Button size="lg" className="px-8 py-4 text-lg" asChild>
+            {/* Enhanced CTA buttons */}
+            <motion.div 
+              className="flex flex-col sm:flex-row gap-6 justify-center items-center mb-16"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.6 }}
+            >
+              <Button size="xl" variant="hero" className="group" asChild>
                 <Link to="/create">
-                  Create Card
-                  <ArrowRight className="ml-2 w-5 h-5" />
+                  <Sparkles className="mr-3 w-5 h-5 group-hover:rotate-12 transition-transform" />
+                  Create Your HaloCard
+                  <ArrowRight className="ml-3 w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               </Button>
-              <Button variant="secondary" size="lg" className="px-8 py-4 text-lg" asChild>
-                <Link to="/gallery">Browse Cards</Link>
+              <Button variant="glass" size="xl" className="backdrop-blur-xl" asChild>
+                <Link to="/gallery">
+                  <Users className="mr-2 w-5 h-5" />
+                  Explore Gallery
+                </Link>
               </Button>
-            </div>
+            </motion.div>
 
-            <CopyableCA />
+            {/* Enhanced Contract Address with better styling */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.8, delay: 0.8 }}
+              className="max-w-md mx-auto"
+            >
+              <CopyableCA />
+            </motion.div>
           </motion.div>
         </div>
+
+        {/* Animated scroll indicator */}
+        <motion.div
+          className="absolute bottom-8 left-1/2 transform -translate-x-1/2"
+          animate={{ y: [0, 10, 0] }}
+          transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+        >
+          <div className="w-6 h-10 rounded-full border-2 border-primary/30 flex justify-center">
+            <div className="w-1 h-3 bg-primary/60 rounded-full mt-2" />
+          </div>
+        </motion.div>
       </section>
 
       {/* Auto-scrolling Card Rail */}
