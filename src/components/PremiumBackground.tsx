@@ -8,15 +8,22 @@ export const PremiumBackground: React.FC = () => {
       <div className="fixed inset-0 -z-50">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950" />
         <div className="absolute inset-0 bg-gradient-to-tr from-violet-950/20 via-transparent to-amber-950/20" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,_var(--tw-gradient-stops))] from-violet-900/10 via-transparent to-transparent" />
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-amber-900/10 via-transparent to-transparent" />
+        <div className="absolute inset-0 opacity-30" style={{
+          background: 'radial-gradient(ellipse at top left, rgba(139, 92, 246, 0.1), transparent)'
+        }} />
+        <div className="absolute inset-0 opacity-30" style={{
+          background: 'radial-gradient(ellipse at bottom right, rgba(245, 158, 11, 0.1), transparent)'
+        }} />
       </div>
 
       {/* Animated orbs */}
       <div className="pointer-events-none fixed inset-0 -z-40 overflow-hidden">
         {/* Large orb top left */}
         <motion.div
-          className="absolute -left-40 -top-40 h-96 w-96 rounded-full bg-gradient-radial from-violet-500/20 via-violet-500/5 to-transparent blur-3xl"
+          className="absolute -left-40 -top-40 h-96 w-96 rounded-full blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, rgba(139, 92, 246, 0.2), rgba(139, 92, 246, 0.05), transparent)'
+          }}
           animate={{
             scale: [1, 1.2, 1],
             opacity: [0.3, 0.6, 0.3],
@@ -32,7 +39,10 @@ export const PremiumBackground: React.FC = () => {
         
         {/* Medium orb center */}
         <motion.div
-          className="absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full bg-gradient-radial from-amber-400/15 via-amber-400/3 to-transparent blur-3xl"
+          className="absolute left-1/2 top-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.03), transparent)'
+          }}
           animate={{
             scale: [1, 1.1, 1],
             opacity: [0.2, 0.4, 0.2],
@@ -47,7 +57,10 @@ export const PremiumBackground: React.FC = () => {
 
         {/* Small orb bottom right */}
         <motion.div
-          className="absolute -bottom-32 -right-32 h-72 w-72 rounded-full bg-gradient-radial from-cyan-500/15 via-cyan-500/3 to-transparent blur-3xl"
+          className="absolute -bottom-32 -right-32 h-72 w-72 rounded-full blur-3xl"
+          style={{
+            background: 'radial-gradient(circle, rgba(6, 182, 212, 0.15), rgba(6, 182, 212, 0.03), transparent)'
+          }}
           animate={{
             scale: [1, 1.3, 1],
             opacity: [0.2, 0.5, 0.2],

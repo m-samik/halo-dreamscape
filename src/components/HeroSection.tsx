@@ -33,8 +33,12 @@ export const HeroSection: React.FC = () => {
         style={{ y: y2 }}
         className="absolute inset-0 -z-20"
       >
-        <div className="absolute right-1/4 top-1/2 h-32 w-32 rounded-full bg-gradient-radial from-amber-500/5 to-transparent blur-2xl" />
-        <div className="absolute left-1/3 bottom-1/4 h-40 w-40 rounded-full bg-gradient-radial from-violet-500/5 to-transparent blur-2xl" />
+        <div className="absolute right-1/4 top-1/2 h-32 w-32 rounded-full blur-2xl" style={{
+          background: 'radial-gradient(circle, rgba(245, 158, 11, 0.05), transparent)'
+        }} />
+        <div className="absolute left-1/3 bottom-1/4 h-40 w-40 rounded-full blur-2xl" style={{
+          background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05), transparent)'
+        }} />
       </motion.div>
 
       <div className="relative z-10 mx-auto max-w-6xl text-center">
