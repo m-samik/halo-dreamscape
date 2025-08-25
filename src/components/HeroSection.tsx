@@ -19,34 +19,31 @@ export const HeroSection: React.FC = () => {
 
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
-      {/* Parallax elements */}
-      <motion.div 
-        style={{ y: y1, opacity }}
-        className="absolute inset-0 -z-10"
-      >
-        <div className="absolute left-1/4 top-1/4 h-2 w-2 rounded-full bg-white/30 animate-pulse" />
-        <div className="absolute right-1/3 top-1/3 h-1 w-1 rounded-full bg-amber-400/40 animate-pulse delay-1000" />
-        <div className="absolute left-2/3 bottom-1/3 h-1.5 w-1.5 rounded-full bg-violet-400/30 animate-pulse delay-2000" />
-      </motion.div>
-      
-      <motion.div 
-        style={{ y: y2 }}
-        className="absolute inset-0 -z-20"
-      >
-        <div className="absolute right-1/4 top-1/2 h-32 w-32 rounded-full blur-2xl" style={{
-          background: 'radial-gradient(circle, rgba(245, 158, 11, 0.05), transparent)'
-        }} />
-        <div className="absolute left-1/3 bottom-1/4 h-40 w-40 rounded-full blur-2xl" style={{
-          background: 'radial-gradient(circle, rgba(139, 92, 246, 0.05), transparent)'
-        }} />
-      </motion.div>
-
       <div className="relative z-10 mx-auto max-w-6xl text-center">
-        {/* Status badges */}
-        <motion.div 
+        {/* Main heading */}
+        <motion.div
           {...FADE_UP_ANIMATION}
           transition={{ ...FADE_UP_ANIMATION.transition, delay: 0.1 }}
-          className="mb-8 flex flex-wrap items-center justify-center gap-3"
+          className="mb-8"
+        >
+          <h1 className="font-display text-7xl font-bold leading-[0.9] tracking-tight md:text-8xl lg:text-9xl">
+            <span className="block bg-gradient-to-r from-white via-white/95 to-white/80 bg-clip-text text-transparent">
+              Great ideas
+            </span>
+            <span className="relative block">
+              <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-violet-400 bg-clip-text text-transparent">
+                live here
+              </span>
+              <div className="absolute inset-0 -z-10 bg-gradient-to-r from-amber-400/20 via-amber-300/20 to-violet-400/20 blur-3xl" />
+            </span>
+          </h1>
+        </motion.div>
+
+        {/* Status badges - moved down */}
+        <motion.div 
+          {...FADE_UP_ANIMATION}
+          transition={{ ...FADE_UP_ANIMATION.transition, delay: 0.2 }}
+          className="mb-12 flex flex-wrap items-center justify-center gap-3"
         >
           <div className="group inline-flex items-center gap-2 rounded-full border border-emerald-500/20 bg-emerald-500/5 px-4 py-2 text-sm font-medium text-emerald-300 backdrop-blur-xl">
             <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
@@ -60,26 +57,6 @@ export const HeroSection: React.FC = () => {
             <Star className="h-4 w-4" />
             <span>Exclusive Access</span>
           </div>
-        </motion.div>
-
-        {/* Main heading */}
-        <motion.div
-          {...FADE_UP_ANIMATION}
-          transition={{ ...FADE_UP_ANIMATION.transition, delay: 0.2 }}
-          className="mb-8"
-        >
-          <h1 className="font-display text-7xl font-bold leading-[0.9] tracking-tight md:text-8xl lg:text-9xl">
-            <span className="block bg-gradient-to-r from-white via-white/95 to-white/80 bg-clip-text text-transparent">
-              Great ideas
-            </span>
-            <span className="relative block">
-              <span className="bg-gradient-to-r from-amber-400 via-amber-300 to-violet-400 bg-clip-text text-transparent">
-                live here
-              </span>
-              {/* Glow effect */}
-              <div className="absolute inset-0 -z-10 bg-gradient-to-r from-amber-400/20 via-amber-300/20 to-violet-400/20 blur-3xl" />
-            </span>
-          </h1>
         </motion.div>
 
         {/* Subtitle */}
