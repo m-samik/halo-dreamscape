@@ -1,4 +1,4 @@
-import React, { useMemo } from "react";
+import React, { useMemo, useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   motion,
@@ -7,6 +7,7 @@ import {
   useTransform,
   useReducedMotion,
   cubicBezier,
+  useAnimation,
 } from "framer-motion";
 import {
   ArrowRight,
@@ -17,6 +18,7 @@ import {
   Zap,
   Gauge,
   Trophy,
+  Star,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CopyableCA } from "@/components/CopyableCA";
@@ -33,227 +35,297 @@ const fadeUp = (d = 0) => ({
   transition: { duration: 0.6, delay: d, ease: EASE },
 });
 
-/** 3D Orbit of HaloCards (CSS rotateY + translateZ) */
+/** Floating particles */
+function FloatingParticles() {
+  const particles = Array.from({ length: 20 }, (_, i) => i);
+  
+  return (
+    <div className="pointer-events-none absolute inset-0 overflow-hidden">
+      {particles.map((i) => (
+        <motion.div
+          key={i}
+          className="absolute h-1 w-1 rounded-full bg-halo/30"
+          initial={{
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+          }}
+          animate={{
+            x: Math.random() * window.innerWidth,
+            y: Math.random() * window.innerHeight,
+          }}
+          transition={{
+            duration: Math.random() * 20 + 10,
+            repeat: Infinity,
+            repeatType: "reverse",
+            ease: "linear",
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+/** 3D Orbit of HaloCards */
 function Orbit3D() {
-  const items = useMemo(() => mockCards.slice(0, 8), []);
-  const R = 500;
+  const items = useMemo(() => mockCards.slice(0, 6), []);
+  const [rotation, setRotation] = useState(0);
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRotation(prev => prev + 0.5);
+    }, 50);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
-    <div className="relative my-12 hidden justify-center md:flex">
-      <div className="perspective-1200">
-        <div className="ring3d preserve-3d">
-          {items.map((c, i) => {
-            const ang = (i / items.length) * 360;
-            return (
-              <div
-                key={`orb-${i}`}
-                className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 preserve-3d"
-                style={{ transform: `rotateY(${ang}deg) translateZ(${R}px)` }}
-              >
-                <div className="scale-[.72] opacity-80 transition-opacity hover:opacity-100">
-                  <HaloCard
-                    username={c.username}
-                    tier={c.tier}
-                    tagline={c.tagline}
-                    walletAddress={c.pubkey}
-                    className="w-[320px]"
-                  />
-                </div>
-              </div>
-            );
-          })}
-        </div>
+    <div className="relative my-16 flex h-[600px] items-center justify-center">
+      <div className="relative">
+        {items.map((card, i) => {
+          const angle = (i / items.length) * 360 + rotation;
+          const radius = 400;
+          const x = Math.cos((angle * Math.PI) / 180) * radius;
+          const z = Math.sin((angle * Math.PI) / 180) * radius;
+          const scale = (z + radius) / (radius * 2) * 0.5 + 0.5;
+          
+          return (
+            <motion.div
+              key={`orbit-${i}`}
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2"
+              style={{
+                transform: `translateX(${x}px) translateZ(${z}px) scale(${scale})`,
+                zIndex: Math.round(z + radius),
+                opacity: scale,
+              }}
+              whileHover={{ scale: scale * 1.1 }}
+            >
+              <HaloCard
+                username={card.username}
+                tier={card.tier}
+                tagline={card.tagline}
+                walletAddress={card.pubkey}
+                className="w-[280px]"
+              />
+            </motion.div>
+          );
+        })}
       </div>
-      <div className="pointer-events-none absolute inset-x-0 bottom-0 -z-10 mx-auto h-24 w-[640px] rounded-full bg-halo/15 blur-3xl" />
+      
+      {/* Central glow */}
+      <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+        <div className="h-32 w-32 rounded-full bg-gradient-radial from-halo/20 via-halo/5 to-transparent blur-xl" />
+      </div>
     </div>
   );
 }
 
 export const Landing: React.FC = () => {
   const prefersReduce = useReducedMotion();
+  const controls = useAnimation();
 
-  // 3D mouse tilt for hero
+  // Enhanced mouse tracking for hero
   const mx = useMotionValue(0);
   const my = useMotionValue(0);
-  const rx = useSpring(useTransform(my, [-20, 20], [10, -10]), { stiffness: 120, damping: 12 });
-  const ry = useSpring(useTransform(mx, [-20, 20], [-10, 10]), { stiffness: 120, damping: 12 });
-  const shineX = useTransform(mx, [-20, 20], ["0%", "100%"]);
+  const rx = useSpring(useTransform(my, [-1, 1], [2, -2]), { stiffness: 100, damping: 30 });
+  const ry = useSpring(useTransform(mx, [-1, 1], [-2, 2]), { stiffness: 100, damping: 30 });
+
+  useEffect(() => {
+    controls.start({
+      opacity: 1,
+      y: 0,
+      transition: { duration: 1, ease: EASE }
+    });
+  }, [controls]);
 
   function onMove(e: React.PointerEvent) {
-    const b = (e.currentTarget as HTMLElement).getBoundingClientRect();
-    const px = ((e.clientX - b.left) / b.width) * 2 - 1;
-    const py = ((e.clientY - b.top) / b.height) * 2 - 1;
-    mx.set(px * 20);
-    my.set(py * 20);
+    const rect = (e.currentTarget as HTMLElement).getBoundingClientRect();
+    const x = (e.clientX - rect.left - rect.width / 2) / (rect.width / 2);
+    const y = (e.clientY - rect.top - rect.height / 2) / (rect.height / 2);
+    mx.set(x);
+    my.set(y);
   }
+
   function onLeave() {
     mx.set(0);
     my.set(0);
   }
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-background text-foreground">
-      {/* BACKGROUND: mesh + grid + grain */}
+    <div className="relative min-h-screen overflow-hidden bg-gradient-to-br from-background via-background to-background/95">
+      {/* Enhanced Background */}
       <div aria-hidden className="fixed inset-0 -z-30">
-        <div className="absolute inset-0 bg-mesh animate-mesh" />
-        <div className="absolute inset-0 bg-grid opacity-[.06]" />
-        <div className="absolute inset-0 bg-noise opacity-[.04] mix-blend-soft-light" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,_var(--tw-gradient-stops))] from-halo/5 via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-grid opacity-[0.02]" />
       </div>
 
-      {/* Aurora blobs */}
+      {/* Floating particles */}
+      {!prefersReduce && <FloatingParticles />}
+
+      {/* Animated aurora blobs */}
       <div aria-hidden className="pointer-events-none fixed inset-0 -z-20">
-        <div className="absolute left-[8%] top-[18%] h-80 w-80 animate-blob rounded-full bg-halo/10 blur-3xl" />
-        <div className="absolute right-[10%] bottom-[16%] h-96 w-96 animate-blob animation-delay-2000 rounded-full bg-primary/15 blur-3xl" />
+        <motion.div 
+          className="absolute left-[10%] top-[20%] h-96 w-96 rounded-full bg-gradient-radial from-halo/15 via-halo/5 to-transparent blur-3xl"
+          animate={{ 
+            scale: [1, 1.2, 1],
+            opacity: [0.3, 0.6, 0.3],
+          }}
+          transition={{ 
+            duration: 8, 
+            repeat: Infinity,
+            ease: "easeInOut"
+          }}
+        />
+        <motion.div 
+          className="absolute right-[15%] bottom-[15%] h-80 w-80 rounded-full bg-gradient-radial from-primary/20 via-primary/5 to-transparent blur-3xl"
+          animate={{ 
+            scale: [1, 1.3, 1],
+            opacity: [0.2, 0.5, 0.2],
+          }}
+          transition={{ 
+            duration: 10, 
+            repeat: Infinity,
+            ease: "easeInOut",
+            delay: 2
+          }}
+        />
       </div>
 
       {/* HERO */}
-      <section className="relative flex flex-col items-center justify-start pt-28 pb-10 md:pt-36 md:pb-16">
-        {/* orbital glow disc */}
-        <div
-          aria-hidden
-          className="absolute left-1/2 top-1/2 -z-10 h-[520px] w-[520px] -translate-x-1/2 -translate-y-1/2"
+      <section className="relative flex min-h-screen flex-col items-center justify-center px-4">
+        {/* Central hero content */}
+        <motion.div
+          className="z-10 mx-auto max-w-6xl text-center"
+          initial={{ opacity: 0, y: 50 }}
+          animate={controls}
+          onPointerMove={onMove}
+          onPointerLeave={onLeave}
         >
-          <div className="absolute inset-0 rounded-full border border-white/10" />
-          <div className="absolute inset-0 orbit" />
-        </div>
-
-        <div className="container-halo">
-          <motion.div
-            className="mx-auto max-w-6xl text-center"
-            initial={{ opacity: 0, y: 8 }}
+          {/* Status badges */}
+          <motion.div 
+            className="mb-8 flex flex-wrap items-center justify-center gap-3"
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, ease: EASE }}
+            transition={{ delay: 0.2, duration: 0.6 }}
           >
-            {/* chain chips */}
-            <div className="mb-5 flex flex-wrap items-center justify-center gap-2 text-xs">
-              <span className="chip">
-                <span className="h-2 w-2 rounded-full bg-[#ffd147]" />
-                Solana • Mainnet
-              </span>
-              <span className="chip">
-                <ShieldCheck className="h-3.5 w-3.5" />
-                Token-gated • Helius RPC
-              </span>
+            <div className="chip-premium">
+              <div className="h-2 w-2 rounded-full bg-green-400 animate-pulse" />
+              <span>Solana Mainnet</span>
             </div>
-
-            {/* 3D plate with shine */}
-            <motion.div
-              className="mx-auto w-full max-w-5xl select-none"
-              style={{ transformStyle: "preserve-3d" as React.CSSProperties["transformStyle"] }}
-              onPointerMove={prefersReduce ? undefined : onMove}
-              onPointerLeave={prefersReduce ? undefined : onLeave}
-            >
-              <motion.div
-                style={{
-                  rotateX: prefersReduce ? 0 : (rx as unknown as number),
-                  rotateY: prefersReduce ? 0 : (ry as unknown as number),
-                }}
-                transition={{ type: "spring", stiffness: 120, damping: 14 }}
-                className="relative rounded-3xl p-2"
-              >
-                <motion.h1
-                  className="text-balance text-6xl font-light leading-[0.95] tracking-wide md:text-8xl xl:text-9xl"
-                  initial={{ opacity: 0, scale: 0.985 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.7, ease: EASE, delay: 0.05 }}
-                  style={{ transform: "translateZ(35px)" }}
-                >
-                  <span className="block bg-gradient-to-b from-white via-white/90 to-white/70 bg-clip-text text-transparent">
-                    Great ideas
-                  </span>
-                  <span className="block gradient-text">live here</span>
-                </motion.h1>
-
-                {/* animated SVG halo ring */}
-                <svg
-                  className="mx-auto mt-6 h-[72px] w-[360px]"
-                  viewBox="0 0 360 72"
-                  fill="none"
-                  style={{ transform: "translateZ(30px)" }}
-                >
-                  <defs>
-                    <radialGradient id="halo" cx="50%" cy="50%" r="50%">
-                      <stop offset="0%" stopColor="rgba(255,215,84,1)" />
-                      <stop offset="70%" stopColor="rgba(255,215,84,.15)" />
-                      <stop offset="100%" stopColor="rgba(255,215,84,0)" />
-                    </radialGradient>
-                  </defs>
-                  <ellipse cx="180" cy="36" rx="160" ry="16" fill="url(#halo)" />
-                  <ellipse cx="180" cy="36" rx="160" ry="16" className="halo-stroke" />
-                </svg>
-
-                {/* moving shine */}
-                {!prefersReduce && (
-                  <motion.div
-                    className="pointer-events-none absolute inset-0 rounded-[24px] opacity-60"
-                    style={{
-                      background:
-                        "radial-gradient(120px 40px at var(--sx, 0%) 18%, rgba(255,255,255,.22), transparent 60%)",
-                      transform: "translateZ(48px)",
-                      ["--sx" as any]: shineX,
-                    }}
-                  />
-                )}
-              </motion.div>
-            </motion.div>
-
-            {/* subcopy */}
-            <motion.p
-              {...fadeUp(0.12)}
-              className="mx-auto mt-7 max-w-3xl text-lg text-white/70 md:text-xl"
-            >
-              A web3 clubhouse for creators. Hold the key, unlock access, mint your
-              <span className="text-primary"> HaloCard</span>, and flex it on-chain.
-            </motion.p>
-
-            {/* CTAs */}
-            <motion.div
-              {...fadeUp(0.22)}
-              className="mt-9 flex flex-col items-center justify-center gap-4 sm:flex-row"
-            >
-              <Link to="/create" aria-label="Create your HaloCard">
-                <Button className="group btn-heaven px-7 py-5 text-base">
-                  <Sparkles className="mr-2 h-5 w-5 transition-transform group-hover:rotate-12" />
-                  Create your HaloCard
-                  <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-                </Button>
-              </Link>
-              <Link to="/gallery" aria-label="Explore HaloCard gallery">
-                <Button variant="outline" className="btn-ghost px-7 py-5 text-base">
-                  Explore gallery
-                </Button>
-              </Link>
-            </motion.div>
-
-            {/* CA + trust strip */}
-            <motion.div
-              {...fadeUp(0.3)}
-              className="mx-auto mt-7 flex max-w-2xl flex-col items-center gap-3"
-            >
-              <CopyableCA />
-              <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-                <span className="chip">
-                  <Zap className="h-3.5 w-3.5" />
-                  Instant PNG share
-                </span>
-                <span className="chip">
-                  <Gauge className="h-3.5 w-3.5" />
-                  Fast, low-fee mints
-                </span>
-                <span className="chip">
-                  <Trophy className="h-3.5 w-3.5" />
-                  Leaderboards & referrals
-                </span>
-              </div>
-            </motion.div>
+            <div className="chip-premium">
+              <ShieldCheck className="h-4 w-4 text-halo" />
+              <span>Token Gated</span>
+            </div>
+            <div className="chip-premium">
+              <Star className="h-4 w-4 text-primary" />
+              <span>Premium Access</span>
+            </div>
           </motion.div>
-        </div>
 
-        {!prefersReduce && (
-          <div className="container-halo">
-            <Orbit3D />
-          </div>
-        )}
+          {/* Main heading with 3D effect */}
+          <motion.div
+            className="relative"
+            style={{
+              rotateX: prefersReduce ? 0 : (rx as unknown as number),
+              rotateY: prefersReduce ? 0 : (ry as unknown as number),
+            }}
+          >
+            <motion.h1
+              className="text-6xl font-bold leading-tight tracking-tight md:text-8xl lg:text-9xl"
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              transition={{ delay: 0.3, duration: 0.8, ease: EASE }}
+            >
+              <motion.span 
+                className="block bg-gradient-to-r from-white via-white/95 to-white/85 bg-clip-text text-transparent"
+                animate={{ backgroundPosition: ["0%", "100%", "0%"] }}
+                transition={{ duration: 5, repeat: Infinity, ease: "linear" }}
+              >
+                Great ideas
+              </motion.span>
+              <motion.span 
+                className="block bg-gradient-to-r from-halo via-primary to-halo bg-clip-text text-transparent"
+                style={{ backgroundSize: "200% 100%" }}
+                animate={{ backgroundPosition: ["0%", "100%", "0%"] }}
+                transition={{ duration: 3, repeat: Infinity, ease: "easeInOut" }}
+              >
+                live here
+              </motion.span>
+            </motion.h1>
+
+            {/* Glow effect behind text */}
+            <div className="pointer-events-none absolute inset-0 -z-10">
+              <div className="absolute left-1/2 top-1/2 h-[200px] w-[600px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-halo/10 blur-3xl" />
+            </div>
+          </motion.div>
+
+          {/* Subtitle */}
+          <motion.p
+            className="mx-auto mt-8 max-w-2xl text-xl text-muted-foreground md:text-2xl"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5, duration: 0.6 }}
+          >
+            The exclusive web3 clubhouse for visionaries. 
+            <span className="text-halo font-medium"> Hold the key</span>, unlock your potential, and mint your legacy.
+          </motion.p>
+
+          {/* CTA buttons */}
+          <motion.div
+            className="mt-12 flex flex-col items-center justify-center gap-4 sm:flex-row"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7, duration: 0.6 }}
+          >
+            <Link to="/create">
+              <Button size="lg" className="group relative overflow-hidden bg-gradient-to-r from-halo to-primary px-8 py-4 text-lg font-semibold text-black shadow-2xl shadow-halo/25 transition-all duration-300 hover:shadow-halo/40 hover:scale-105">
+                <Sparkles className="mr-2 h-5 w-5 transition-transform group-hover:rotate-12" />
+                Create HaloCard
+                <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+                <div className="absolute inset-0 -z-10 bg-gradient-to-r from-halo/20 to-primary/20 blur-xl" />
+              </Button>
+            </Link>
+            <Link to="/gallery">
+              <Button size="lg" variant="outline" className="px-8 py-4 text-lg border-white/20 bg-white/5 backdrop-blur-sm hover:bg-white/10 hover:border-white/30">
+                <Users className="mr-2 h-5 w-5" />
+                Explore Gallery
+              </Button>
+            </Link>
+          </motion.div>
+
+          {/* Contract address */}
+          <motion.div
+            className="mt-12"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.9, duration: 0.6 }}
+          >
+            <CopyableCA />
+          </motion.div>
+
+          {/* Feature chips */}
+          <motion.div
+            className="mt-8 flex flex-wrap items-center justify-center gap-3"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 1.1, duration: 0.6 }}
+          >
+            <div className="chip">
+              <Zap className="h-4 w-4 text-halo" />
+              <span>Instant Mint</span>
+            </div>
+            <div className="chip">
+              <Gauge className="h-4 w-4 text-primary" />
+              <span>Low Fees</span>
+            </div>
+            <div className="chip">
+              <Trophy className="h-4 w-4 text-accent" />
+              <span>Leaderboards</span>
+            </div>
+          </motion.div>
+        </motion.div>
+
+        {/* 3D Card Orbit */}
+        {!prefersReduce && <Orbit3D />}
       </section>
 
       {/* FEATURED RAILS */}

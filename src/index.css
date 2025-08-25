@@ -175,6 +175,17 @@
   border:1px solid rgba(255,255,255,.12);
   background:rgba(255,255,255,.04); backdrop-filter: blur(8px) saturate(120%);
 }
+
+.chip-premium {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.5rem 1rem; border-radius: 9999px;
+  border: 1px solid rgba(255, 215, 84, 0.2);
+  background: linear-gradient(135deg, rgba(255, 215, 84, 0.1), rgba(153, 69, 255, 0.1));
+  backdrop-filter: blur(12px) saturate(140%);
+  box-shadow: 0 8px 24px rgba(255, 215, 84, 0.15);
+  font-weight: 500; color: rgba(255, 255, 255, 0.95);
+}
+
 .neo-card {
   background: linear-gradient(180deg, rgba(255,255,255,.05), rgba(255,255,255,.02));
   border: 1px solid rgba(255,255,255,.12);
