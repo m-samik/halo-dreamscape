@@ -2,7 +2,6 @@ import React from 'react';
 import { Link } from 'react-router-dom';
 import { X, Sparkles, Github, Mail, Shield, Zap, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import haloLogo from '@/assets/halocard-logo.png';
 
 export const FooterMinimal = () => {
   return (
@@ -11,9 +10,8 @@ export const FooterMinimal = () => {
         <div className="grid gap-12 md:grid-cols-4">
           {/* Brand */}
           <div className="space-y-4 md:col-span-2">
-            <Link to="/" className="flex items-center space-x-3">
-              <img src={haloLogo} alt="HaloCard" className="h-8 w-auto" />
-              <span className="text-lg font-semibold text-gradient">HaloCard</span>
+            <Link to="/" className="text-lg font-semibold text-gradient">
+              HaloCard
             </Link>
             <p className="max-w-md text-sm text-muted-foreground leading-relaxed">
               The most exclusive web3 clubhouse for visionaries. Hold the key, unlock your potential, 

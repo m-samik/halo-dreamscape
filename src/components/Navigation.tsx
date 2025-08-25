@@ -3,7 +3,6 @@ import { Link, useLocation } from "react-router-dom";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import haloLogo from "@/assets/halocard-logo.png";
 
 export const Navigation: React.FC = () => {
   const location = useLocation();
@@ -13,8 +12,8 @@ export const Navigation: React.FC = () => {
       <div className="container-halo py-4">
         <div className="flex items-center justify-between">
           {/* Brand */}
-          <Link to="/" className="flex items-center">
-            <img src={haloLogo} alt="HaloCard" className="h-8 w-auto" />
+          <Link to="/" className="text-2xl font-semibold text-gradient">
+            HaloCard
           </Link>
 
           {/* Center Navigation */}
