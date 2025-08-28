@@ -2,8 +2,8 @@ import { useState, useEffect } from 'react';
 import { useWallet, useConnection } from '@solana/wallet-adapter-react';
 import { PublicKey } from '@solana/web3.js';
 
-const MINT_ADDRESS = '5dpN5wMH8j8au29Rp91qn4WfNq6t6xJfcjQNcFeDJ8Ct';
-const MIN_HOLDINGS = 500000000000; // 500 tokens with 9 decimals
+const MINT_ADDRESS = 'ArwBHrqR721SVSqnrk6MAwvwbFZ2cvadyGyHdKxobonk';
+const MIN_HOLDINGS = 50000000; // 500 tokens with 9 decimals
 const HELIUS_RPC = 'https://mainnet.helius-rpc.com/?api-key=b12fadd7-ee2f-47bf-a61e-4f6e9647b8e9';
 
 export interface TokenGateStatus {
