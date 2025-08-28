@@ -1,14 +1,26 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { WalletMultiButton } from "@solana/wallet-adapter-react-ui";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { hasCard } from "@/api/cards";
+import { useWallet } from "@solana/wallet-adapter-react";
 
 export const Navigation: React.FC = () => {
   const location = useLocation();
+  const { publicKey } = useWallet();
+
+  const walletAddress = useMemo(() => publicKey?.toBase58() || "", [publicKey]);
+
+  const [alreadyMinted, setAlreadyMinted] = useState(false);
+
+  useEffect(() => {
+  if (!walletAddress) return;
+  hasCard(walletAddress).then(setAlreadyMinted);
+}, [walletAddress]);
 
   return (
-    <nav className="fixed left-0 right-0 top-0 z-50 glass-card border-b border-border/20">
+    <nav className="left-0 right-0 top-0 z-50 glass-card border-b border-border/20">
       <div className="container-halo py-4">
         <div className="flex items-center justify-between">
           {/* Brand */}
@@ -28,7 +40,9 @@ export const Navigation: React.FC = () => {
             >
               Ideas
             </Link>
-            <Link
+           {
+            !alreadyMinted && (
+               <Link
               to="/create"
               className={`transition-colors hover:text-primary ${
                 location.pathname === "/create"
@@ -38,6 +52,8 @@ export const Navigation: React.FC = () => {
             >
               Create
             </Link>
+            )
+           }
             <a
               href="#how"
               className="text-muted-foreground transition-colors hover:text-primary"

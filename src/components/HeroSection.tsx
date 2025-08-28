@@ -1,9 +1,11 @@
-import React from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { ArrowRight, Sparkles, Users, ShieldCheck, Star, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { CopyableCA } from "@/components/CopyableCA";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { hasCard } from "@/api/cards";
 
 const FADE_UP_ANIMATION = {
   initial: { opacity: 0, y: 30 },
@@ -16,6 +18,17 @@ export const HeroSection: React.FC = () => {
   const y1 = useTransform(scrollYProgress, [0, 1], [0, -100]);
   const y2 = useTransform(scrollYProgress, [0, 1], [0, -200]);
   const opacity = useTransform(scrollYProgress, [0, 0.3], [1, 0]);
+
+    const { publicKey } = useWallet();
+  
+    const walletAddress = useMemo(() => publicKey?.toBase58() || "", [publicKey]);
+  
+    const [alreadyMinted, setAlreadyMinted] = useState(false);
+  
+    useEffect(() => {
+    if (!walletAddress) return;
+    hasCard(walletAddress).then(setAlreadyMinted);
+  }, [walletAddress]);
 
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden px-6">
@@ -76,7 +89,8 @@ export const HeroSection: React.FC = () => {
           transition={{ ...FADE_UP_ANIMATION.transition, delay: 0.4 }}
           className="mb-16 flex flex-col items-center justify-center gap-4 sm:flex-row"
         >
-          <Link to="/create">
+          { !alreadyMinted && (
+            <Link to="/create">
             <Button 
               size="lg" 
               className="group relative overflow-hidden bg-gradient-to-r from-amber-500 to-amber-600 px-8 py-4 text-lg font-semibold text-black shadow-2xl shadow-amber-500/25 transition-all duration-300 hover:shadow-amber-500/40 hover:scale-[1.02] active:scale-[0.98]"
@@ -88,7 +102,7 @@ export const HeroSection: React.FC = () => {
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </div>
             </Button>
-          </Link>
+          </Link>)}
           <Link to="/gallery">
             <Button 
               size="lg" 

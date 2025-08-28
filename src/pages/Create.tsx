@@ -1,27 +1,56 @@
-import React, { useState } from 'react';
-import { useWallet } from '@solana/wallet-adapter-react';
-import { WalletGate } from '@/components/WalletGate';
-import { HaloCard } from '@/components/HaloCard';
-import { useTokenGate } from '@/hooks/useTokenGate';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Textarea } from '@/components/ui/textarea';
-import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { Download, Share, Sparkles } from 'lucide-react';
-import { toast } from '@/hooks/use-toast';
-import { cardStore, HaloCardData } from '@/data/mockData';
+// src/pages/Create.tsx
+import React, { useEffect, useMemo, useState } from "react";
+import { useWallet } from "@solana/wallet-adapter-react";
+import { WalletGate } from "@/components/WalletGate";
+import { HaloCard } from "@/components/HaloCard";
+import { useTokenGate } from "@/hooks/useTokenGate";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Label } from "@/components/ui/label";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Download, Share, Sparkles } from "lucide-react";
+import { toast } from "@/hooks/use-toast";
+import { cardStore, HaloCardData } from "@/data/mockData";
+import { createCard, fetchCard } from "@/api/cards";
+import { useNavigate } from "react-router-dom";
 
-export const Create = () => {
+export const Create: React.FC = () => {
   const { publicKey } = useWallet();
+  const navigate = useNavigate();
   const tokenStatus = useTokenGate();
-  const [username, setUsername] = useState('');
-  const [tagline, setTagline] = useState('');
+
+  const [username, setUsername] = useState("");
+  const [tagline, setTagline] = useState("");
   const [isCreating, setIsCreating] = useState(false);
+  const [exists, setExists] = useState<boolean | null>(null);
+
+  const walletAddress = useMemo(() => publicKey?.toBase58() || "", [publicKey]);
+
+  // Check if this wallet already has a card
+  useEffect(() => {
+    let alive = true;
+    (async () => {
+      if (!walletAddress) {
+        setExists(null);
+        return;
+      }
+      try {
+        const res = await fetchCard(walletAddress);
+        if (!alive) return;
+        setExists(!!res.exists);
+      } catch (e) {
+        console.error(e);
+        setExists(null);
+      }
+    })();
+    return () => {
+      alive = false;
+    };
+  }, [walletAddress]);
 
   const handleDownload = () => {
-    // Mock download functionality
     toast({
       title: "Download Started",
       description: "Your HaloCard PNG is being generated...",
@@ -31,7 +60,7 @@ export const Create = () => {
   const handleShare = () => {
     const tweetText = `Gate cleared. Minted my #HaloCard — tier ${tokenStatus.tier}. Claim yours: halocard.xyz`;
     const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
-    window.open(tweetUrl, '_blank');
+    window.open(tweetUrl, "_blank");
   };
 
   const handleMint = async () => {
@@ -43,22 +72,39 @@ export const Create = () => {
       });
       return;
     }
-
-    if (!publicKey) return;
+    if (!walletAddress) return;
 
     setIsCreating(true);
-    
-    // Simulate minting process
-    setTimeout(() => {
+    try {
+      // 1) Block if a card already exists
+      const check = await fetchCard(walletAddress);
+      if (check.exists) {
+        toast({
+          title: "Card Already Exists",
+          description: "You already created a HaloCard for this wallet.",
+          variant: "destructive",
+        });
+        navigate(`/u/${walletAddress}`);
+        return;
+      }
+
+      // 2) Create via Atlas Function (atomic, respects unique index)
+      await createCard({
+        walletAddress,
+        displayName: username.trim(),
+        tier: tokenStatus.tier,
+        metadata: { tagline: tagline.trim() || undefined, source: "webapp" },
+      });
+
+      // 3) (Optional) update your local mock store for UI
       const newCard: HaloCardData = {
         id: Date.now().toString(),
-        pubkey: publicKey.toBase58(),
+        pubkey: walletAddress,
         username: username.trim(),
         tier: tokenStatus.tier,
         tagline: tagline.trim() || undefined,
         createdAt: new Date().toISOString(),
       };
-
       cardStore.unshift(newCard);
 
       toast({
@@ -66,8 +112,26 @@ export const Create = () => {
         description: `Your ${tokenStatus.tier} tier HaloCard has been created successfully.`,
       });
 
+      navigate(`/u/${walletAddress}`);
+    } catch (e: any) {
+      if (e?.code === 409 || /card_exists/i.test(String(e?.message))) {
+        toast({
+          title: "Card Already Exists",
+          description: "You already created a HaloCard for this wallet.",
+          variant: "destructive",
+        });
+        navigate(`/u/${walletAddress}`);
+      } else {
+        console.error(e);
+        toast({
+          title: "Mint Failed",
+          description: "Something went wrong. Try again.",
+          variant: "destructive",
+        });
+      }
+    } finally {
       setIsCreating(false);
-    }, 2000);
+    }
   };
 
   const CreateForm = () => (
@@ -86,9 +150,7 @@ export const Create = () => {
                 <Sparkles className="w-5 h-5 text-primary" />
                 Card Details
               </CardTitle>
-              <CardDescription>
-                Customize your HaloCard with your unique information
-              </CardDescription>
+              <CardDescription>Customize your HaloCard with your unique information</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               {/* Tier Display */}
@@ -134,9 +196,12 @@ export const Create = () => {
               {/* Wallet Info */}
               <div>
                 <Label className="text-sm font-medium text-muted-foreground">Wallet Address</Label>
-                <p className="font-mono text-sm mt-1 break-all">
-                  {publicKey?.toBase58()}
-                </p>
+                <p className="font-mono text-sm mt-1 break-all">{walletAddress}</p>
+                {exists === true && (
+                  <p className="text-xs text-red-400 mt-1">
+                    You already minted a card for this wallet — creating a new one is blocked.
+                  </p>
+                )}
               </div>
 
               {/* Actions */}
@@ -144,7 +209,7 @@ export const Create = () => {
                 <Button
                   onClick={handleMint}
                   className="w-full"
-                  disabled={!username.trim() || isCreating}
+                  disabled={!username.trim() || isCreating || exists === true}
                 >
                   {isCreating ? (
                     <>
@@ -179,13 +244,13 @@ export const Create = () => {
               <h3 className="text-2xl font-semibold mb-2">Live Preview</h3>
               <p className="text-muted-foreground">See how your HaloCard will look</p>
             </div>
-            
+
             <div className="flex justify-center">
               <HaloCard
-                username={username || 'Your Username'}
+                username={username || "Your Username"}
                 tier={tokenStatus.tier}
                 tagline={tagline || undefined}
-                walletAddress={publicKey?.toBase58() || ''}
+                walletAddress={walletAddress}
                 className="max-w-sm"
               />
             </div>

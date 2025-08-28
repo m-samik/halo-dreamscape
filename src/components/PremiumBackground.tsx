@@ -5,7 +5,7 @@ export const PremiumBackground: React.FC = () => {
   return (
     <>
       {/* Gradient mesh background */}
-      <div className="fixed inset-0 -z-50">
+      <div className="fixed inset-0 -z-50 mt-1000">
         <div className="absolute inset-0 bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950" />
         <div className="absolute inset-0 bg-gradient-to-tr from-violet-950/20 via-transparent to-amber-950/20" />
         <div className="absolute inset-0 opacity-30" style={{
