@@ -8,7 +8,13 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Download, Share, Sparkles } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
@@ -16,6 +22,178 @@ import { cardStore, HaloCardData } from "@/data/mockData";
 import { createCard, fetchCard } from "@/api/cards";
 import { useNavigate } from "react-router-dom";
 
+// ------------------ FORM COMPONENT ------------------
+interface CreateFormProps {
+  username: string;
+  setUsername: (v: string) => void;
+  tagline: string;
+  setTagline: (v: string) => void;
+  walletAddress: string;
+  exists: boolean | null;
+  isCreating: boolean;
+  tokenStatus: any;
+  handleMint: () => void;
+  handleDownload: () => void;
+  handleShare: () => void;
+}
+
+const CreateForm: React.FC<CreateFormProps> = ({
+  username,
+  setUsername,
+  tagline,
+  setTagline,
+  walletAddress,
+  exists,
+  isCreating,
+  tokenStatus,
+  handleMint,
+  handleDownload,
+  handleShare,
+}) => {
+  return (
+    <div className="min-h-screen pt-32 pb-20 px-6">
+      <div className="container mx-auto max-w-6xl">
+        <div className="text-center mb-12">
+          <h1 className="text-5xl font-light mb-4 text-gradient">
+            Create Your HaloCard
+          </h1>
+          <p className="text-xl text-muted-foreground">
+            Design your divine presence on the blockchain
+          </p>
+        </div>
+
+        <div className="grid lg:grid-cols-2 gap-12 items-start">
+          {/* Form */}
+          <Card className="glass-card border-border/20">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-primary" />
+                Card Details
+              </CardTitle>
+              <CardDescription>
+                Customize your HaloCard with your unique information
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Tier Display */}
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">
+                  Your Tier
+                </Label>
+                <div className="mt-2">
+                  <Badge variant="secondary" className="text-sm">
+                    {tokenStatus.tier}
+                  </Badge>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Based on your token balance of{" "}
+                    {parseFloat(tokenStatus.balanceUi).toFixed(2)} tokens
+                  </p>
+                </div>
+              </div>
+
+              {/* Username */}
+              <div>
+                <Label htmlFor="username">Username *</Label>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
+                  className="mt-2"
+                  maxLength={20}
+                />
+              </div>
+
+              {/* Tagline */}
+              <div>
+                <Label htmlFor="tagline">Tagline (Optional)</Label>
+                <Textarea
+                  id="tagline"
+                  value={tagline}
+                  onChange={(e) => setTagline(e.target.value)}
+                  placeholder="Add a personal tagline..."
+                  className="mt-2 resize-none"
+                  rows={2}
+                  maxLength={60}
+                />
+              </div>
+
+              {/* Wallet Info */}
+              <div>
+                <Label className="text-sm font-medium text-muted-foreground">
+                  Wallet Address
+                </Label>
+                <p className="font-mono text-sm mt-1 break-all">
+                  {walletAddress}
+                </p>
+                {exists === true && (
+                  <p className="text-xs text-red-400 mt-1">
+                    You already minted a card for this wallet — creating a new
+                    one is blocked.
+                  </p>
+                )}
+              </div>
+
+              {/* Actions */}
+              <div className="space-y-3 pt-4">
+                <Button
+                  onClick={handleMint}
+                  className="w-full"
+                  disabled={!username.trim() || isCreating || exists === true}
+                >
+                  {isCreating ? (
+                    <>
+                      <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2" />
+                      Minting...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="w-4 h-4 mr-2" />
+                      Mint HaloCard
+                    </>
+                  )}
+                </Button>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <Button variant="secondary" onClick={handleDownload}>
+                    <Download className="w-4 h-4 mr-2" />
+                    Download PNG
+                  </Button>
+                  <Button variant="secondary" onClick={handleShare}>
+                    <Share className="w-4 h-4 mr-2" />
+                    Share on X
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Live Preview */}
+          <div className="sticky top-32">
+            <div className="text-center mb-6">
+              <h3 className="text-2xl font-semibold mb-2">Live Preview</h3>
+              <p className="text-muted-foreground">
+                See how your HaloCard will look
+              </p>
+            </div>
+
+            <div className="flex justify-center">
+              <HaloCard
+                username={username || "Your Username"}
+                tier={tokenStatus.tier}
+                tagline={tagline || undefined}
+                walletAddress={walletAddress}
+                className="max-w-sm"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// ------------------ MAIN CREATE PAGE ------------------
 export const Create: React.FC = () => {
   const { publicKey } = useWallet();
   const navigate = useNavigate();
@@ -26,7 +204,10 @@ export const Create: React.FC = () => {
   const [isCreating, setIsCreating] = useState(false);
   const [exists, setExists] = useState<boolean | null>(null);
 
-  const walletAddress = useMemo(() => publicKey?.toBase58() || "", [publicKey]);
+  const walletAddress = useMemo(
+    () => publicKey?.toBase58() || "",
+    [publicKey]
+  );
 
   // Check if this wallet already has a card
   useEffect(() => {
@@ -59,7 +240,9 @@ export const Create: React.FC = () => {
 
   const handleShare = () => {
     const tweetText = `Gate cleared. Minted my #HaloCard — tier ${tokenStatus.tier}. Claim yours: halocard.xyz`;
-    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(tweetText)}`;
+    const tweetUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(
+      tweetText
+    )}`;
     window.open(tweetUrl, "_blank");
   };
 
@@ -134,135 +317,21 @@ export const Create: React.FC = () => {
     }
   };
 
-  const CreateForm = () => (
-    <div className="min-h-screen pt-32 pb-20 px-6">
-      <div className="container mx-auto max-w-6xl">
-        <div className="text-center mb-12">
-          <h1 className="text-5xl font-light mb-4 text-gradient">Create Your HaloCard</h1>
-          <p className="text-xl text-muted-foreground">Design your divine presence on the blockchain</p>
-        </div>
-
-        <div className="grid lg:grid-cols-2 gap-12 items-start">
-          {/* Form */}
-          <Card className="glass-card border-border/20">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Sparkles className="w-5 h-5 text-primary" />
-                Card Details
-              </CardTitle>
-              <CardDescription>Customize your HaloCard with your unique information</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-6">
-              {/* Tier Display */}
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Your Tier</Label>
-                <div className="mt-2">
-                  <Badge variant="secondary" className="text-sm">
-                    {tokenStatus.tier}
-                  </Badge>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Based on your token balance of {parseFloat(tokenStatus.balanceUi).toFixed(2)} tokens
-                  </p>
-                </div>
-              </div>
-
-              {/* Username */}
-              <div>
-                <Label htmlFor="username">Username *</Label>
-                <Input
-                  id="username"
-                  value={username}
-                  onChange={(e) => setUsername(e.target.value)}
-                  placeholder="Enter your username"
-                  className="mt-2"
-                  maxLength={20}
-                />
-              </div>
-
-              {/* Tagline */}
-              <div>
-                <Label htmlFor="tagline">Tagline (Optional)</Label>
-                <Textarea
-                  id="tagline"
-                  value={tagline}
-                  onChange={(e) => setTagline(e.target.value)}
-                  placeholder="Add a personal tagline..."
-                  className="mt-2 resize-none"
-                  rows={2}
-                  maxLength={60}
-                />
-              </div>
-
-              {/* Wallet Info */}
-              <div>
-                <Label className="text-sm font-medium text-muted-foreground">Wallet Address</Label>
-                <p className="font-mono text-sm mt-1 break-all">{walletAddress}</p>
-                {exists === true && (
-                  <p className="text-xs text-red-400 mt-1">
-                    You already minted a card for this wallet — creating a new one is blocked.
-                  </p>
-                )}
-              </div>
-
-              {/* Actions */}
-              <div className="space-y-3 pt-4">
-                <Button
-                  onClick={handleMint}
-                  className="w-full"
-                  disabled={!username.trim() || isCreating || exists === true}
-                >
-                  {isCreating ? (
-                    <>
-                      <div className="w-4 h-4 rounded-full border-2 border-white border-t-transparent animate-spin mr-2" />
-                      Minting...
-                    </>
-                  ) : (
-                    <>
-                      <Sparkles className="w-4 h-4 mr-2" />
-                      Mint HaloCard
-                    </>
-                  )}
-                </Button>
-
-                <div className="grid grid-cols-2 gap-3">
-                  <Button variant="secondary" onClick={handleDownload}>
-                    <Download className="w-4 h-4 mr-2" />
-                    Download PNG
-                  </Button>
-                  <Button variant="secondary" onClick={handleShare}>
-                    <Share className="w-4 h-4 mr-2" />
-                    Share on X
-                  </Button>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Live Preview */}
-          <div className="sticky top-32">
-            <div className="text-center mb-6">
-              <h3 className="text-2xl font-semibold mb-2">Live Preview</h3>
-              <p className="text-muted-foreground">See how your HaloCard will look</p>
-            </div>
-
-            <div className="flex justify-center">
-              <HaloCard
-                username={username || "Your Username"}
-                tier={tokenStatus.tier}
-                tagline={tagline || undefined}
-                walletAddress={walletAddress}
-                className="max-w-sm"
-              />
-            </div>
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-
   return (
     <WalletGate>
-      <CreateForm />
+      <CreateForm
+        username={username}
+        setUsername={setUsername}
+        tagline={tagline}
+        setTagline={setTagline}
+        walletAddress={walletAddress}
+        exists={exists}
+        isCreating={isCreating}
+        tokenStatus={tokenStatus}
+        handleMint={handleMint}
+        handleDownload={handleDownload}
+        handleShare={handleShare}
+      />
     </WalletGate>
   );
 };
